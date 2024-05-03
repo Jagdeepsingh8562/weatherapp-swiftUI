@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var isNight: Bool = false
     var body: some View {
         ZStack {
-            BackgroudView(isDarkMode: false)
+            BackgroudView(isDarkMode: isNight)
             VStack{
                 CityTextView(cityName: "Jaipur, Raj")
-                MainWeatherView().padding(.bottom,20)
+                MainWeatherView(isDarkMode: isNight).padding(.bottom,20)
                 HStack(spacing: 10){
                     DayWeatherView(day: "TUE", symbolName: "cloud.rain.fill")
                     DayWeatherView(symbolName: "wind")
@@ -22,7 +23,9 @@ struct ContentView: View {
                     DayWeatherView()
                 }
                 Spacer()
-                ActionButton(title: "Change Day Time", textColor: .blue, backgroundColor: .white)
+                ActionButton(title: "Change Day Time", textColor: .blue, backgroundColor: .white, action: {
+                    isNight.toggle()
+                })
             }
         }
                 
@@ -36,9 +39,10 @@ struct ContentView: View {
 }
 
 struct MainWeatherView: View {
+    var isDarkMode: Bool
     var body: some View {
         VStack (spacing: 0){
-            Image(systemName: "cloud.sun.fill")
+            Image(systemName:isDarkMode ? "cloud.moon.fill" : "cloud.sun.fill")
                 .renderingMode(.original)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -79,11 +83,10 @@ struct ActionButton: View {
     var title: String
     var textColor: Color
     var backgroundColor: Color
+    var action: () -> Void
     
     var body: some View {
-        Button(action: {
-            
-        }, label: {
+        Button(action: action, label: {
             Text(title)
             
         }).frame(width: 280,height: 50)
