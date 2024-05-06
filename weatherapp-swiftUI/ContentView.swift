@@ -59,14 +59,30 @@ struct ContentView: View {
 struct MainWeatherView: View {
     var isDarkMode: Bool
     @Binding var weatherData : CurrentWeatherResponseModel?
+    private var imageUrl : URL? {
+        get {
+            return  URL(string: "https://openweathermap.org/img/wn/\(weatherData?.weather.first?.icon ?? "10d")@2x.png")
+        }
+    }
+    
     var body: some View {
         VStack (spacing: 0){
-            Image(systemName:isDarkMode ? "cloud.moon.fill" : "cloud.sun.fill")
-                .renderingMode(.original)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 180.0, height: 180.0)
-            Text("\(Int(weatherData?.main.temp ?? 45))°")
+            AsyncImage(url: imageUrl) { img in
+                img.renderingMode(.original)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 180.0, height: 180.0)
+            } placeholder: {
+                Image(systemName:isDarkMode ? "cloud.moon.fill" : "cloud.sun.fill")
+                    .renderingMode(.original)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 180.0, height: 180.0)
+            }
+
+           
+            
+            Text("\(Int(weatherData?.main.temp ?? 45))°c")
                 .font(.system(size: 70,weight: .bold,design: .rounded))
                 .foregroundColor(.white)
         }
