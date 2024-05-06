@@ -9,15 +9,16 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var isNight: Bool = false
+    @State private var weatherData : CurrentWeatherResponseModel?
     var body: some View {
         ZStack {
-            BackgroudView(isDarkMode: isNight)
+            BackgroudView(isDarkMode: $isNight)
             VStack{
-                CityTextView(cityName: "Jaipur, Raj")
-                MainWeatherView(isDarkMode: isNight).padding(.bottom,20)
+                CityTextView(cityName: weatherData?.name ?? "bn")
+                MainWeatherView(isDarkMode: isNight, weatherData: $weatherData).padding(.bottom,20)
                 HStack(spacing: 10){
-                    DayWeatherView(day: "TUE", symbolName: "cloud.rain.fill")
-                    DayWeatherView(symbolName: "wind")
+                    DayWeatherView(weatherModel: WeatherModel(dayofWeek: .monday, temp: Int(weatherData?.main.temp ?? 45), weatherSymbol: .rainny))
+                    DayWeatherView(weatherModel: WeatherModel(dayofWeek: .tuesday, temp: 45, weatherSymbol: .sunWithCloud))
                     DayWeatherView()
                     DayWeatherView()
                     DayWeatherView()
@@ -27,10 +28,27 @@ struct ContentView: View {
                     isNight.toggle()
                 })
             }
-        }
+        }.onAppear(perform: {
+            fetchWeatherData()
+        })
                 
         
         
+    }
+    
+    func fetchWeatherData() {
+        let url = URL(string: "https://api.openweathermap.org/data/2.5/weather?lat=26.79913416938583&lon=75.84860364496515&units=metric&appid=91d2fd40b897f21572fa1c6c9335fbb1")!
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            guard let data = data else { return }
+            do {
+                            let decodedData = try JSONDecoder().decode(CurrentWeatherResponseModel.self, from: data)
+                            DispatchQueue.main.async {
+                                self.weatherData = decodedData
+                            }
+                        } catch {
+                            print(error)
+                        }
+        }.resume()
     }
 }
 
@@ -40,6 +58,7 @@ struct ContentView: View {
 
 struct MainWeatherView: View {
     var isDarkMode: Bool
+    @Binding var weatherData : CurrentWeatherResponseModel?
     var body: some View {
         VStack (spacing: 0){
             Image(systemName:isDarkMode ? "cloud.moon.fill" : "cloud.sun.fill")
@@ -47,7 +66,7 @@ struct MainWeatherView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 180.0, height: 180.0)
-            Text("43°")
+            Text("\(Int(weatherData?.main.temp ?? 45))°")
                 .font(.system(size: 70,weight: .bold,design: .rounded))
                 .foregroundColor(.white)
         }
@@ -56,7 +75,7 @@ struct MainWeatherView: View {
 
 struct BackgroudView: View {
     
-    var isDarkMode: Bool
+   @Binding var isDarkMode: Bool
     
     var darkModeColors: [Color] = [.blue,.black]
     

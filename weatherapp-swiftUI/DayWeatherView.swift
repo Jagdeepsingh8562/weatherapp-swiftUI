@@ -6,27 +6,31 @@
 //
 
 import SwiftUI
-
+import Foundation
 struct DayWeatherView: View {
-    public var day: String
-    public var temp: Int
-    public var symbolName: String
-    init(day: String = "TUE",temp: Int = 45,symbolName: String = "cloud.sun.fill") {
-        self.day = day
-        self.temp = temp
-        self.symbolName = symbolName
+    public var weatherModel: WeatherModel
+//    public var day: String
+//    public var temp: Int
+//    public var symbolName: String
+//    init(day: String = "TUE",temp: Int = 45,symbolName: String = "cloud.sun.fill") {
+//        self.day = day
+//        self.temp = temp
+//        self.symbolName = symbolName
+//    }
+    init(weatherModel: WeatherModel = WeatherModel(dayofWeek: .monday, temp: 35, weatherSymbol: .sunny)) {
+        self.weatherModel = weatherModel
     }
     var body: some View {
         VStack (spacing: 0){
-            Text(day.uppercased())
+            Text(weatherModel.dayofWeek.rawValue.uppercased())
                 .font(.system(size: 15,weight: .bold,design: .rounded))
                 .foregroundColor(.white)
-            Image(systemName: symbolName)
+            Image(systemName: weatherModel.weatherSymbol.rawValue)
                 .renderingMode(.original)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 50, height: 50)
-            Text("\(temp)°")
+            Text("\(weatherModel.temp)°")
                 .font(.system(size: 20,weight: .bold,design: .rounded))
                 .foregroundColor(.white)
             Spacer()
