@@ -10,7 +10,10 @@ import SwiftUI
 struct ContentView: View {
     @State private var isNight: Bool = false
     @State private var weatherData : WeatherData?
+    @StateObject var locationDataManager = LocationDataManager()
+    
     var body: some View {
+            
         ZStack {
             BackgroudView(isDarkMode: $isNight)
             VStack{
@@ -30,17 +33,37 @@ struct ContentView: View {
                 })
             }
         }.onAppear(perform: {
-            fetchWeatherData()
+            let (lat,lon) = fetchLocationData()
+            fetchWeatherData(lat: lat, lon: lon)
         })
                 
         
         
     }
     
-    func fetchWeatherData()  {
+    func fetchLocationData() -> (Float,Float) {
+                    switch locationDataManager.locationManager.authorizationStatus {
+                    case .authorizedWhenInUse:  // Location services are available.
+                        // Insert code here of what should happen when Location services are authorized
+                        guard let lat = Float(locationDataManager.locationManager.location?.coordinate.latitude.description ?? "0") else { return (0,0) }
+                        guard let lon = Float(locationDataManager.locationManager.location?.coordinate.longitude.description ?? "0") else { return (0,0) }
+                        
+                        return (lat,lon)
+                        
+                    case .restricted, .denied, .notDetermined:
+                        return (0,0)
+                    default:
+                        return (0,0)
+                    }
+                
+            }
+    
+    
+    func fetchWeatherData(lat:Float,lon:Float)  {
         Task {
-            self.weatherData = await WeatherRepo().fetchWeatherDataFromResponse()
-            print(weatherData?.current.time ?? Date())
+            self.weatherData = await WeatherRepo(lat: lat,lon: lon).fetchWeatherDataFromResponse()
+            self.isNight  = weatherData?.current.isDay == 1 ? false : true
+            print(weatherData?.current.isDay ?? 000)
         }
     }
     

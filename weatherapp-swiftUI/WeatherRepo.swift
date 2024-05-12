@@ -10,7 +10,15 @@ import OpenMeteoSdk
 
 class WeatherRepo {
     /// Make sure the URL contains `&format=flatbuffers`
-    let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=26.9196&longitude=75.7878&current=temperature_2m,is_day,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=GMT&format=flatbuffers")!
+    private var lat: Float
+    private var lon: Float
+    init(lat: Float = 26.9196, lon: Float = 75.7878) {
+        self.lat = lat
+        self.lon = lon
+        self.url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=\(lat)&longitude=\(lon)&current=temperature_2m,is_day,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=GMT&format=flatbuffers")!
+        
+    }
+    private var url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=26.9196&longitude=75.7878&current=temperature_2m,is_day,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=GMT&format=flatbuffers")!
     
    private func fetchWeatherResponse() async ->  WeatherApiResponse?  {
         do {
