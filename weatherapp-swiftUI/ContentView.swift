@@ -9,19 +9,20 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var isNight: Bool = false
-    @State private var weatherData : CurrentWeatherResponseModel?
+    @State private var weatherData : WeatherData?
     var body: some View {
         ZStack {
             BackgroudView(isDarkMode: $isNight)
             VStack{
-                CityTextView(cityName: weatherData?.name ?? "bn")
                 MainWeatherView(isDarkMode: isNight, weatherData: $weatherData).padding(.bottom,20)
+                
                 HStack(spacing: 10){
-                    DayWeatherView(weatherModel: WeatherModel(dayofWeek: .monday, temp: Int(weatherData?.main.temp ?? 45), weatherSymbol: .rainny))
-                    DayWeatherView(weatherModel: WeatherModel(dayofWeek: .tuesday, temp: 45, weatherSymbol: .sunWithCloud))
-                    DayWeatherView()
-                    DayWeatherView()
-                    DayWeatherView()
+                    DayWeatherView(weatherModel: WeatherModel(weatherDaily: weatherData?.daily, postion: 1))
+                    DayWeatherView(weatherModel: WeatherModel(weatherDaily: weatherData?.daily, postion: 2))
+                    DayWeatherView(weatherModel: WeatherModel(weatherDaily: weatherData?.daily, postion: 3))
+                    DayWeatherView(weatherModel: WeatherModel(weatherDaily: weatherData?.daily, postion: 4))
+                    DayWeatherView(weatherModel: WeatherModel(weatherDaily: weatherData?.daily, postion: 5))
+                    DayWeatherView(weatherModel: WeatherModel(weatherDaily: weatherData?.daily, postion: 6))
                 }
                 Spacer()
                 ActionButton(title: "Change Day Time", textColor: .blue, backgroundColor: .white, action: {
@@ -36,65 +37,25 @@ struct ContentView: View {
         
     }
     
-    func fetchWeatherData() {
-        let url = URL(string: "https://api.openweathermap.org/data/2.5/weather?lat=26.79913416938583&lon=75.84860364496515&units=metric&appid=91d2fd40b897f21572fa1c6c9335fbb1")!
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data else { return }
-            do {
-                            let decodedData = try JSONDecoder().decode(CurrentWeatherResponseModel.self, from: data)
-                            DispatchQueue.main.async {
-                                self.weatherData = decodedData
-                            }
-                        } catch {
-                            print(error)
-                        }
-        }.resume()
+    func fetchWeatherData()  {
+        Task {
+            self.weatherData = await WeatherRepo().fetchWeatherDataFromResponse()
+            print(weatherData?.current.time ?? Date())
+        }
     }
+    
 }
 
 #Preview {
     ContentView()
 }
 
-struct MainWeatherView: View {
-    var isDarkMode: Bool
-    @Binding var weatherData : CurrentWeatherResponseModel?
-    private var imageUrl : URL? {
-        get {
-            return  URL(string: "https://openweathermap.org/img/wn/\(weatherData?.weather.first?.icon ?? "10d")@2x.png")
-        }
-    }
-    
-    var body: some View {
-        VStack (spacing: 0){
-            AsyncImage(url: imageUrl) { img in
-                img.renderingMode(.original)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 180.0, height: 180.0)
-            } placeholder: {
-                Image(systemName:isDarkMode ? "cloud.moon.fill" : "cloud.sun.fill")
-                    .renderingMode(.original)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 180.0, height: 180.0)
-            }
 
-           
-            
-            Text("\(Int(weatherData?.main.temp ?? 45))°c")
-                .font(.system(size: 70,weight: .bold,design: .rounded))
-                .foregroundColor(.white)
-        }
-    }
-}
 
 struct BackgroudView: View {
     
    @Binding var isDarkMode: Bool
-    
     var darkModeColors: [Color] = [.blue,.black]
-    
     var lightModeColors: [Color] = [.blue,Color("LightBlueColor", bundle: nil)]
     
     var body: some View {
@@ -104,15 +65,6 @@ struct BackgroudView: View {
 }
 
 
-struct CityTextView: View {
-    var cityName: String
-    var body: some View {
-        Text(cityName)
-            .font(.system(size: 32,weight: .medium,design: .default))
-            .foregroundColor(.white)
-            .padding()
-    }
-}
 
 struct ActionButton: View {
     var title: String
