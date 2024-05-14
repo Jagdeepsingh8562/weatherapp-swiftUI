@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 struct ContentView: View {
     @State private var isNight: Bool = false
     @State private var weatherData : WeatherData?
+    @State private var cityName: String? 
     @StateObject var locationDataManager = LocationDataManager()
     
     var body: some View {
@@ -17,7 +19,7 @@ struct ContentView: View {
         ZStack {
             BackgroudView(isDarkMode: $isNight)
             VStack{
-                MainWeatherView(isDarkMode: isNight, weatherData: $weatherData).padding(.bottom,20)
+                MainWeatherView(isDarkMode: isNight, weatherData: $weatherData, cityName: $cityName).padding(.bottom,20)
                 
                 HStack(spacing: 10){
                     DayWeatherView(weatherModel: WeatherModel(weatherDaily: weatherData?.daily, postion: 1))
@@ -32,9 +34,12 @@ struct ContentView: View {
                     isNight.toggle()
                 })
             }
-        }.onAppear(perform: {
-            let (lat,lon) = fetchLocationData()
-            fetchWeatherData(lat: lat, lon: lon)
+        }.onAppear(perform:  {
+            Task {
+                let (lat,lon) = fetchLocationData()
+                
+                fetchWeatherData(lat: lat, lon: lon)
+            }
         })
                 
         
@@ -58,11 +63,18 @@ struct ContentView: View {
                 
             }
     
+    func fetchCityName(lat: Float, lon: Float) {
+        LocationDataManager().reverseGeocoding(latitude: CLLocationDegrees(lat), longitude: CLLocationDegrees(lon)) { name in
+                cityName = name
+            
+        }
+    }
     
     func fetchWeatherData(lat:Float,lon:Float)  {
         Task {
             self.weatherData = await WeatherRepo(lat: lat,lon: lon).fetchWeatherDataFromResponse()
             self.isNight  = weatherData?.current.isDay == 1 ? false : true
+            fetchCityName(lat: lat, lon: lon)
             print(weatherData?.current.isDay ?? 000)
         }
     }

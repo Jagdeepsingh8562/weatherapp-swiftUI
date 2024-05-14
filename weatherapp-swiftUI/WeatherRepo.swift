@@ -7,6 +7,7 @@
 
 import Foundation
 import OpenMeteoSdk
+import CoreLocation
 
 class WeatherRepo {
     /// Make sure the URL contains `&format=flatbuffers`
@@ -31,23 +32,6 @@ class WeatherRepo {
         
     }
     
-   private func fetchLocationName(lat: Float32, lon: Float32) async -> String {
-        var cityName: String = "No Name Found"
-       let url = URL(string: "https://api.openweathermap.org/geo/1.0/reverse?lat=\(lat)&lon=\(lon)&appid=\(APIKeyConstant.openWeatherAPIKey)")!
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let decodedData = try JSONDecoder().decode([ReverseGeocodingResponseElement].self, from: data)
-            if decodedData.isEmpty == false {
-                cityName = decodedData.first?.name ?? "No Name Found"
-            }
-            
-        } catch let error {
-            print(error)
-        }
-        
-        return cityName
-    }
-    
    public func fetchWeatherDataFromResponse() async -> WeatherData? {
         
         let response = await fetchWeatherResponse()
@@ -62,10 +46,9 @@ class WeatherRepo {
 
         let current = response.current!
         let daily = response.daily!
+       
         
-        let cityName = await fetchLocationName(lat: latitude, lon: longitude)
-        
-       var dailyWeatherCode : [WeatherCode] = {
+       let dailyWeatherCode : [WeatherCode] = {
            var codeList = [WeatherCode]()
            daily.variables(at: 0)!.values.forEach { code in
                codeList.append(getWeatherIcon(code: code))
@@ -85,8 +68,7 @@ class WeatherRepo {
                 weatherCode: dailyWeatherCode,
                 temperature2mMax: daily.variables(at: 1)!.values,
                 temperature2mMin: daily.variables(at: 2)!.values
-            ),
-            cityName: cityName
+            )
         )
         let dateFormatter = DateFormatter()
         dateFormatter.timeZone = .gmt

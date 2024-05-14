@@ -11,10 +11,11 @@ import SwiftUI
 struct MainWeatherView: View {
     var isDarkMode: Bool
     @Binding var weatherData : WeatherData?
+    @Binding var cityName: String?
     
     var body: some View {
         VStack (spacing: 0){
-            CityTextView(cityName: weatherData?.cityName ?? "Jaipur")
+            CityTextView(cityName: cityName ?? "Jaipur")
             Spacer(minLength: 10)
             WeatherStatusImageView(weatherCode: weatherData?.current.weatherCode ?? WeatherRepo().getWeatherIcon(code: 1), imageSize: 180)
             Text("\(Int(weatherData?.current.temperature2m ?? 45))°c")

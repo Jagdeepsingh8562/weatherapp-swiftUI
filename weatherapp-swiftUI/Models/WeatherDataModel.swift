@@ -8,7 +8,6 @@ import Foundation
 struct WeatherData {
     let current: Current
     let daily: Daily
-    let cityName: String
 
     struct Current {
         let time: Date
