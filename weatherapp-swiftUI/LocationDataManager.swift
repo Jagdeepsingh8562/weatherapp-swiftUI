@@ -53,5 +53,29 @@ class LocationDataManager : NSObject, ObservableObject, CLLocationManagerDelegat
         print("error: \(error.localizedDescription)")
     }
     
+    func reverseGeocoding(latitude: CLLocationDegrees, longitude: CLLocationDegrees,  completion: @escaping (String) -> ()){
+            let geocoder = CLGeocoder()
+            let location = CLLocation(latitude: latitude, longitude: longitude)
+            var cityName = "Not found"
+            geocoder.reverseGeocodeLocation(location, completionHandler: {(placemarks, error) -> Void in
+                if error != nil {
+                    print("Failed to retrieve address")
+                    
+                    return
+                }
+                
+                if let placemarks = placemarks, let placemark = placemarks.first {
+                    print("asasasasas \(placemark.locality)")
+                    cityName = placemark.locality ?? "Not found"
+                    completion(placemark.locality ?? "")
+                }
+                else
+                {
+                    print("No Matching Address Found")
+                }
+            })
+            
+        }
+    
     
 }
